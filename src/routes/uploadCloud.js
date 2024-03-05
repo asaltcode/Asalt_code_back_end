@@ -4,6 +4,6 @@ import timeout from 'connect-timeout'
 
 const routers = express.Router()
 
-routers.post('/upload-video',timeout('1m'), uploadCloudController.videoUpload)
+routers.post('/upload-video',timeout('10m'), uploadCloudController.videoUpload)
 
 export default routers

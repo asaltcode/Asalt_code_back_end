@@ -30,8 +30,18 @@ const upload = multer({
             console.error(err);
             res.status(500).send('An error occurred');
         } else {
-             const video = await VideoModel.create({filename: req?.file?.originalname, video_src: req?.file?.path})
-            res.status(200).send({url: req?.file?.path, id: video._id });
+             const video = await VideoModel.create({filename: req?.file?.originalname, video_src: req?.file?.path, public_id: req.file.filename})
+               cloudinary.uploader.upload(req.file.path, { resource_type: 'video' }, (error, result) => {
+                 if (error) {
+                   console.error(error);
+                   res.status(500).send('An error occurred');
+                  } else {
+                    console.log(req.file)
+                    const duration = result?.duration;
+                    res.status(200).send({url: req?.file?.path, id: video._id, duration, public_id: req.file.filename });        
+                }
+              });          
+          
         }
     });
   }

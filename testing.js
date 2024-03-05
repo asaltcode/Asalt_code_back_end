@@ -45,4 +45,71 @@ let model ={
             "duration": 5.338333
         }
     ]
-},
+}
+
+const readline = require('readline');
+
+const inp = readline.createInterface({
+  input: process.stdin
+});
+
+const userInput = [];
+
+inp.on("line", (data) => {
+  userInput.push(data);
+});
+
+inp.on("close", () => {
+  const binaryTree = userInput[0];
+  const cities = userInput[1].split(' ');
+  
+  const minDistance = calculateMinDistance(binaryTree, cities[0], cities[1]);
+  console.log(minDistance);
+});
+
+function calculateMinDistance(binaryTree, city1, city2) {
+  const parentMap = {};
+  
+  // Build parent map
+  let parent = '';
+  for (let i = 0; i < binaryTree.length; i++) {
+    const node = binaryTree[i];
+    if (node === ' ') continue;
+    if (node === city1 || node === city2) {
+      parentMap[node] = parent;
+    }
+    parent = node;
+  }
+  
+  // Find common ancestor
+  let ancestor = city1;
+  while (ancestor !== '') {
+    if (isDescendant(city2, ancestor, parentMap)) {
+      break;
+    }
+    ancestor = parentMap[ancestor];
+  }
+  
+  // Calculate distance
+  const distance1 = getDistance(city1, ancestor, parentMap);
+  const distance2 = getDistance(city2, ancestor, parentMap);
+  
+  return distance1 + distance2;
+}
+
+function isDescendant(city, ancestor, parentMap) {
+  while (city !== '') {
+    if (city === ancestor) return true;
+    city = parentMap[city];
+  }
+  return false;
+}
+
+function getDistance(city, ancestor, parentMap) {
+  let distance = 0;
+  while (city !== ancestor) {
+    city = parentMap[city];
+    distance++;
+  }
+  return distance;
+}

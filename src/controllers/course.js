@@ -80,7 +80,7 @@ const delCourse = async(req, res) =>{
 }
 const editCourse = async(req, res) =>{
     try {
-        const {title, author, category, visibility, description, thumbnail} = req.body
+        const {title, author, price, category, visibility, description, thumbnail} = req.body
         const course = await CourseModel.findOne({ _id: req.params.id });   
         const BodyThumbnail = await CourseModel.findOne({thumbnail: req.body.thumbnail})     
         if(!course){
@@ -92,6 +92,7 @@ const editCourse = async(req, res) =>{
         if(!BodyThumbnail ||  thumbnail === course.thumbnail){
             course.title = title
             course.author = author
+            course.price = price
             course.category = category
             course.visibility = visibility
             course.description = description
@@ -123,7 +124,7 @@ const getCourseById = async(req, res) =>{
     try {
         const course = await CourseModel.findOne({ _id: req.params.id });        
         if(course){
-            const course = await CourseModel.findOne({ _id: req.params.id },{_id: 0, createdAt: 0}); 
+            const course = await CourseModel.findOne({ _id: req.params.id },{createdAt: 0}); 
            res.status(200).send({
             message: 'Course featched Successfully',
             course
@@ -143,3 +144,4 @@ const getCourseById = async(req, res) =>{
 }
 
 export default {addCourse, getCourse, getAllCourse, delCourse, editCourse, getCourseById}
+

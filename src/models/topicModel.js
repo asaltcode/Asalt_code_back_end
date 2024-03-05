@@ -1,6 +1,6 @@
 import mongoose from "./index.js";
 
-const topicSchema = mongoose.Schema({
+const topicSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
@@ -14,10 +14,18 @@ const topicSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    duration: {
+        type: Number,
+        required: true,
+    },
     topic_video_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "videos",
         required: true,
+    },
+    public_id: {
+        type: String,
+        require: true
     },
     visibility: {
         type: Boolean,

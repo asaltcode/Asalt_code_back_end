@@ -1,7 +1,7 @@
 import mongoose from './index.js'
 
 
-const courseSchema = mongoose.Schema({
+const courseSchema = new mongoose.Schema({
     thumbnail: {
         type: String,
         required: true,
@@ -14,6 +14,10 @@ const courseSchema = mongoose.Schema({
           },
           message: 'Invalid URL format for image'
         }
+    },
+    price: {
+        type : Number,
+        required : true,        
     },
     syllabus: {
         type: mongoose.Schema.Types.ObjectId,
@@ -41,8 +45,7 @@ const courseSchema = mongoose.Schema({
     },
     createdAt:{
         type: Date,
-        default: Date.now(),
-        
+        default: Date.now(),        
     },
 },
 {

@@ -1,6 +1,6 @@
 import mongoose from "./index.js";
 
-const syllabusSchema = mongoose.Schema({
+const syllabusSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
@@ -9,6 +9,10 @@ const syllabusSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'course',
         required: true,
+    },
+    items:{
+        type: Array,
+        default: []
     },
     visibility: {
         type: Boolean,

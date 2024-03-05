@@ -22,6 +22,10 @@ const carouselSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    visibility: {
+        type: Boolean,
+        default: true,
+    },
     createdAt:{
         type: Date,
         default: Date.now()

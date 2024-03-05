@@ -6,6 +6,8 @@ import CourseRouters from "./course.js"
 import SyllabusRouters from "./syllbus.js"
 import TopicRouters from "./topic.js"
 import uploadCloudRoutes from './uploadCloud.js'
+import AddToCartRoutes from './addToCart.js'
+import PaymentRoutes from './payment.js'
 
 const routers = express.Router()
 routers.get('/', IndexController.homePage)
@@ -16,5 +18,7 @@ routers.use('/', CourseRouters)
 routers.use('/', SyllabusRouters)
 routers.use('/', TopicRouters)
 routers.use('/', uploadCloudRoutes)
+routers.use('/', AddToCartRoutes)
+routers.use('/', PaymentRoutes)
 
 export default routers

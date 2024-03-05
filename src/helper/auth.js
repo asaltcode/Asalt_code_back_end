@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import UserModel from '../models/userModel.js';
+import CourseModel from '../models/courseModel.js';
+import paymentModel from '../models/paymentModel.js';
 const saltRound = 10;
 
 //Create hash
@@ -71,12 +73,11 @@ const userGuard = async(req, res, next)=>{
     const payload = await decodeToken(token)
     const currentDate = Math.floor(+new Date()/1000)
     const user = await UserModel.findOne({ email: payload.email});
-    if (payload.role === "user" && user.role === "user") {
-        res.status(200).send({message: "isValide"})
+    if (payload.role === "user" && user.role === "user") {       
         next()        
     } else {
         res.status(401).send({
-            message: "Only Admins are allowed"
+            message: "Only Users are allowed"
         })
     }
 
@@ -129,6 +130,42 @@ const adminProduct = async(req, res, next) =>{
     }
 }
 
+const userPayment = async(req, res, next) =>{
+    const token = req?.headers?.authorization?.split(" ")[1]
+    if(token){
+        const payload = await decodeToken(token)
+        const currentDate = Math.floor(+new Date()/1000)
+        const user = await UserModel.findOne({ _id: payload.id});
+        if (payload?.role === "user" && user?.role === "user") {
+            const course = await CourseModel.findOne({_id: req.params.id})
+            const payment = await paymentModel.findOne({$and: [{course_id: course._id}, {access: true}, {user_id: payload.id}]})
+           
+            if(payment){
+                if(currentDate < payload.exp){
+                next()
+                }else{
+                   res.status(402).send({
+                    message: "Session expired"
+                   })
+                }            
+            }
+        else{
+            res.status(402).send({
+                message: "You have not paid for this"
+            })
+        }     
+    } else {
+        res.status(401).send({
+            message: "Only Users are allowed"
+        })
+    }
+    }else{
+        res.status(401).send({
+            message: "Unauthorised access"
+        })
+    }
+}
+
 export default {
     createHash, 
     compareHash,
@@ -138,5 +175,6 @@ export default {
     adminGuard,
     userGuard,
     userProduct,
-    adminProduct
+    adminProduct,
+    userPayment
 }

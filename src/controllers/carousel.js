@@ -22,7 +22,27 @@ const addCrousel = async(req, res) =>{
 }
 const getCrousel = async(req, res) =>{
     try {
-        const image = await CarouselModel.find({})
+        const image = await CarouselModel.find({visibility: true})
+        if(image){
+            res.status(200).send({
+                message: "image featched Successfully",
+                image
+            })
+        }else{
+            res.status(404).send({
+                message: "Not Found"
+            })
+        }
+    } catch (error) {
+        res.status(500).send({
+            message: "Internal Server Error",
+            error: error.message,
+          });
+    }
+}
+const getAllCrousel = async(req, res) =>{
+    try {
+        const image = await CarouselModel.find()
         if(image){
             res.status(200).send({
                 message: "image featched Successfully",
@@ -42,7 +62,37 @@ const getCrousel = async(req, res) =>{
 }
 const delCrousel = async(req, res) =>{
     try {
-        
+        const carousel = await CarouselModel.findById({ _id: req.params.id });
+        if (carousel) {
+          await CarouselModel.deleteOne({ _id: req.params.id });
+          res.status(200).send({
+            message: "Carousel Deleted Successfully",
+          });
+        } else {
+          res.status(404).send({
+            message: `NOt Found`,
+          });
+        }
+    } catch (error) {
+        res.status(500).send({
+            message: "Internal Server Error",
+            error: error.message,
+          });
+    }
+}
+const getCrouselById = async(req, res) =>{
+    try {
+        const carousel = await CarouselModel.findOne({ _id: req.params.id });
+        if (carousel) {
+          res.status(200).send({
+            message: "Carousel fetched Successfully",
+            carousel
+          });
+        } else {
+          res.status(404).send({
+            message: `NOt Found`,
+          });
+        }
     } catch (error) {
         res.status(500).send({
             message: "Internal Server Error",
@@ -52,7 +102,18 @@ const delCrousel = async(req, res) =>{
 }
 const editCrousel = async(req, res) =>{
     try {
-        
+        const carousel = await CarouselModel.findById({ _id: req.params.id });
+        if (carousel) {
+            const {imageUrl, imageAlt, description, visibility} = req.body
+            carousel.imageUrl = imageUrl
+            carousel.imageAlt = imageAlt
+            carousel.description = description
+            carousel.visibility = visibility
+            await carousel.save()
+          res.status(200).send({
+            message: "Syllabus Deleted Successfully",
+          });
+        }
     } catch (error) {
         res.status(500).send({
             message: "Internal Server Error",
@@ -61,4 +122,4 @@ const editCrousel = async(req, res) =>{
     }
 }
 
-export default {addCrousel, getCrousel, delCrousel, editCrousel,}
+export default {addCrousel, getCrousel, getAllCrousel, delCrousel, editCrousel, getCrouselById}

@@ -48,6 +48,7 @@ const verify = async(req, res)=>{ // signup verify conformation
   try {
     // Find user in the database using the token
     const user = await UserModel.findOne({ verificationToken: token });
+
     if (!user || user.verified) {
         // Token not found or user already verified
         return res.status(404).send({message:'Invalid or expired verification link.'});
@@ -111,8 +112,8 @@ const login = async (req, res) => { //user Login
                     email: user.email,
                     hash : user.password,
                     role: user.role,
+                    id: user._id
                   }
-
                   const token = await Auth.createToken(details);
                   const refreshToken = await Auth.createToken(details)
                   res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' }).header('Authorization', token)
@@ -121,6 +122,7 @@ const login = async (req, res) => { //user Login
                     token,
                     name: user.name, 
                     role: user.role, 
+                    id: user._id
                   })
                 } else {
                   res.status(400).send({
@@ -279,6 +281,27 @@ const getUserById = async (req, res) => {
     });
   }
 };
+const getUser = async (req, res) => {
+  try {
+    const user = await UserModel.findOne({ _id: req.params.id },{password: 0, status: 0, otp: 0, verified: 0, createdAt: 0});
+    if(user){
+      res.status(200).send({
+        message: "User fetched successfully!",
+        user,
+      });
+    }else{
+      res.status(400).send({
+        message: "Not found",
+        user,
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
 
 const deletetUserById = async (req, res) => {
   try {
@@ -345,4 +368,4 @@ const editUser = async (req, res) =>{
   }
 }
 
-export default {signup, verify, reSendVerification, login, forgot, verifyOTP, changePassword, getAllUser, refreshToken, getUserById, deletetUserById, editUser}
+export default {signup, verify, reSendVerification, login, forgot, verifyOTP, changePassword, getAllUser, refreshToken, getUserById, getUser, deletetUserById, editUser}
