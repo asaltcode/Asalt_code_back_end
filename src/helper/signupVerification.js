@@ -13,7 +13,8 @@ const signupVerify = async (name, email, verifyLink) =>{
     },
   });
  
-  const website = 'http://localhost:5173/verify'
+  // const website = 'http://localhost:5173/verify'
+  const website = 'https://asalt-code-front-end.vercel.app/verify'
   // const website = 'https://getbootstrap.com/docs'
 
   const mailOptions = {

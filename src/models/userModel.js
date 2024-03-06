@@ -19,12 +19,12 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required :[true, "Email is required"],
-        lowercase: true,
+        required :[true, "Email is required"],       
         validate:{
             validator:validateEmail,
             message: props => `${props.value} is not a valid email!`
-        }        
+        }, 
+        lowercase: true
     },
     password: {
         type: String,
@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
         default: "user"
     },
     dob: {
-        type: Date,
+        type: String,
         default: "dd-mm-yyyy"
     },
     gender: {

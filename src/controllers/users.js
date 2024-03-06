@@ -10,17 +10,16 @@ let generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString() /
 let generateVerificationToken = () => crypto.randomBytes(20).toString('hex'); //Generate a verifiction token
 
 const signup = async (req, res) => {      //user Signup
-  try {
     try {
       const user = await UserModel.findOne({ email: req.body.email });
       if (!user) {
         //Hash the password
         const {name, email, password} = req.body
-        
         req.body.password = await Auth.createHash(password);
         req.body.verificationToken = generateVerificationToken();//set verification token 
         signupVerification.signupVerify(name, email, req.body.verificationToken)//Verification mail send
-        const newUser = await UserModel.create(req.body);       
+        await UserModel.create(req.body)
+         
         res.status(200).send({
           message: "Check your email !",
         });
@@ -35,12 +34,7 @@ const signup = async (req, res) => {      //user Signup
         error: error.message,
       });
     }
-  } catch (error) {
-    res.status(500).send({
-      message: "Internal Server Error",
-      error: error.message,
-    });
-  }
+  
 };
 
 const verify = async(req, res)=>{ // signup verify conformation
