@@ -14,6 +14,7 @@ const storage = new CloudinaryStorage({
       public_id: (req, file) => file?.fieldname + '-' + Date.now()
     }
   });
+
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
@@ -45,17 +46,42 @@ const upload = multer({
         }
     });
   }
- const thumbnailUpload = (req, res) => {
-    upload(req, res, (err) => {
-        if (err) {
-            console.error(err);
-            res.status(500).send('An error occurred');
-        } else {
-            res.send({url: req.file.path });
-        }
+
+  const cloudinaryStorage = () => {
+    return new CloudinaryStorage({
+      cloudinary: cloudinary,
+      params: {
+        folder: "courseImages",
+        resource_type: 'image',
+        allowed_formats: ['jpg', 'jpeg', 'png'],
+        public_id: (req, file) => file?.fieldname + '-' + Date.now()
+      }
     });
-  }
+  };
   
-export default {videoUpload, thumbnailUpload}
+  const imageUpload = multer({
+    storage: cloudinaryStorage(),
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+          cb(null, true);
+      } else {
+          return cb(new Error('Invalid file format. Only JPG and PNG files are allowed.'));
+      }
+    }
+  }).single('image');
+  
+  const uploadImage = (req, res) => {
+    imageUpload(req, res, async (err) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('An error occurred');
+      } else {
+        const image = await ImageModel.create({filename: req?.file?.originalname, image_src: req?.file?.path, public_id: req.file.filename})
+        res.status(200).send({url: req?.file?.path, id: image._id, public_id: req.file.filename });        
+      }
+    });
+  };
+  
+export default {videoUpload}
 
 

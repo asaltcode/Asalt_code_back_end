@@ -109,14 +109,14 @@ const login = async (req, res) => { //user Login
                     id: user._id
                   }
                   const token = await Auth.createToken(details);
-                  const refreshToken = await Auth.createToken(details)
-                  res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' }).header('Authorization', token)
+                  const refreshToken = jwt.sign(details, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+                  res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'None', secure: true }).header('Authorization', token)
                   .send({
                     message: "Login successfully",
                     token,
                     name: user.name, 
                     role: user.role, 
-                    id: user._id
+                
                   })
                 } else {
                   res.status(400).send({
@@ -144,20 +144,42 @@ const login = async (req, res) => { //user Login
 };
 
 const refreshToken = async (req, res)=>{
-  // const refreshToken = req.cookies['refreshToken'];
-  // if (!refreshToken) {
-  //   return res.status(401).send('Access Denied. No refresh token provided.');
-  // }
-console.log('Cookies', req.cookies['refreshToken'])
-  try {
-    const decoded = jwt.verify(refreshToken, 'ldjfuLKjhusdWEfiyhxcvkLKyh');
-    const accessToken = jwt.sign({ user: decoded.user }, 'ldjfuLKjhusdWEfiyhxcvkLKyh', { expiresIn: '1h' });
-    res
-      .header('Authorization', accessToken)
-      .send(decoded.user);
-  } catch (error) {
-    return res.status(400).send('Invalid refresh token.');
-  }
+   try {
+    if(req.cookies?.refreshToken){
+        // Destructuring refreshToken from cookie
+        const refreshToken = req.cookies.refreshToken;
+       // Verifying refresh token
+       jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET,
+       async (err, decoded) => {
+            if (err) {
+                // Wrong Refesh Token
+                return res.status(406).json({ message: 'Unauthorized' });
+            }
+            else {
+                // Correct token we send a new access token
+              //   const { email } = req.body;
+              //  const user = await UserModel.findOne({ email: email });
+              //   console.log(user)
+                // const accessToken = jwt.sign({
+                //     email: user.email,
+                //     name: user.name,
+                //     role: user.role
+                // }, process.env.ACCESS_TOKEN_SECRET, {
+                //     expiresIn: '10m'
+                // });
+                // return res.send({ accessToken });
+                return res.send({message: "hi"})
+            }
+        })
+
+    }else{
+      return res.status(406).send({ message: 'Unauthorized' })
+    }
+   } catch (error) {
+    res.status(500).send({
+      message: "Internal Server Error"
+    });
+   }
 }
 
 const forgot = async (req, res) => {
@@ -173,7 +195,7 @@ const forgot = async (req, res) => {
       user.save()
       setTimeout(async () => {user.otp = null ; user.save()} , 70000);
       console.log(OTP);
-      // OtpVerify.OTPverification(user.name, user.email, OTP)
+      OtpVerify.OTPverification(user.name, user.email, OTP)
       res.status(200).send({
         message: "OTP has been send",
       });

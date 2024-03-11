@@ -31,7 +31,7 @@ const authorization = async(req, res, next)=>{
     if(token){
     const payload = await decodeToken(token)
     const currentDate = Math.floor(+new Date()/1000)
-    if (currentDate < payload.exp) {
+    if (currentDate < payload?.exp) {
        
         next()        
     } else {
@@ -51,7 +51,7 @@ const adminGuard = async(req, res, next)=>{
     const token = req?.headers?.authorization?.split(" ")[1]
     if(token){
         const payload = await decodeToken(token)
-        const user = await UserModel.findOne({ email: payload.email});
+        const user = await UserModel.findOne({ email: payload?.email});
     const currentDate = Math.floor(+new Date()/1000)
     if (payload.role === "admin" && user.role === "admin") {
         next()        
@@ -72,7 +72,7 @@ const userGuard = async(req, res, next)=>{
     if(token){
     const payload = await decodeToken(token)
     const currentDate = Math.floor(+new Date()/1000)
-    const user = await UserModel.findOne({ email: payload.email});
+    const user = await UserModel.findOne({ email: payload?.email});
     if (payload.role === "user" && user.role === "user") {       
         next()        
     } else {
@@ -94,7 +94,7 @@ const userProduct = async(req, res, next) =>{
     if(token){
     const payload = await decodeToken(token)
     const currentDate = Math.floor(+new Date()/1000)
-    const user = await UserModel.findOne({ email: payload.email});
+    const user = await UserModel.findOne({ email: payload?.email});
     if (payload.role === "user" && user.role === "user") {
         res.status(200).send({message: "isValide"})
         next()        
@@ -114,7 +114,7 @@ const adminProduct = async(req, res, next) =>{
     if(token){
     const payload = await decodeToken(token)
     const currentDate = Math.floor(+new Date()/1000)
-    const user = await UserModel.findOne({ email: payload.email});
+    const user = await UserModel.findOne({ email: payload?.email});
     if (payload.role === "admin" && user.role === "admin") {
         res.status(200).send({message: "isValide"})    
     } else {
@@ -135,7 +135,7 @@ const userPayment = async(req, res, next) =>{
     if(token){
         const payload = await decodeToken(token)
         const currentDate = Math.floor(+new Date()/1000)
-        const user = await UserModel.findOne({ _id: payload.id});
+        const user = await UserModel.findOne({ _id: payload?.id});
         if (payload?.role === "user" && user?.role === "user") {
             const course = await CourseModel.findOne({_id: req.params.id})
             const payment = await paymentModel.findOne({$and: [{course_id: course._id}, {access: true}, {user_id: payload.id}]})
