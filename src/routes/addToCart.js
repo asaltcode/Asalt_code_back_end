@@ -6,6 +6,6 @@ const routers = express.Router()
 routers.post('/add-to-cart', Auth.userGuard, AddToCartController.addCart)
 routers.delete('/del-cart', Auth.userGuard, AddToCartController.delCart)
 routers.delete('/del-all-cart', Auth.userGuard, AddToCartController.delAllCart)
-routers.post('/get-all-cart', Auth.userGuard, AddToCartController.getAllCart)
+routers.get('/get-all-cart', Auth.userGuard, AddToCartController.getAllCart)
 
 export default routers
