@@ -17,7 +17,14 @@ const coursePurchase = async (req, res) =>{
     key_id: process.env.RAZOR_API_KEY,
     key_secret: process.env.RAZOR_SECRET_KEY,
 });
-
+console.log(req.body)
+// const user = await UserModel.findOne({_id: req.body.user_id})
+const am = await req.body.course_id.reduce(async(id, i) =>{
+    const course = await CourseModel.findOne({_id: i})
+    id += await course.price
+    return  id
+},0)
+console.log(am)
 const options = {    // setting up options for razorpay order.
     amount: req.body.amount * 100,
     currency: "INR",

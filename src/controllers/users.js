@@ -298,8 +298,11 @@ const getUserById = async (req, res) => {
   }
 };
 const getUser = async (req, res) => {
+  const token = req?.headers?.authorization?.split(" ")[1];
+  const payload = await Auth.decodeToken(token);
+  const user = await UserModel.findOne({$and: [{ _id: payload.id }, { email: payload.email }],}, {password: 0, status: 0, otp: 0, verified: 0});
   try {
-    const user = await UserModel.findOne({ _id: req.params.id },{password: 0, status: 0, otp: 0, verified: 0, createdAt: 0});
+    // const user = await UserModel.findOne({ _id: req.params.id },{password: 0, status: 0, otp: 0, verified: 0, createdAt: 0});
     if(user){
       res.status(200).send({
         message: "User fetched successfully!",
@@ -308,7 +311,6 @@ const getUser = async (req, res) => {
     }else{
       res.status(400).send({
         message: "Not found",
-        user,
       });
     }
   } catch (error) {
