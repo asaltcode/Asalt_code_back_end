@@ -150,7 +150,7 @@ const login = async (req, res) => { //user Login
   } catch (error) {
     res.status(500).send({
       message: "Internal Server Error",
-      error: error
+      error: error.message
     });
   }
 };
