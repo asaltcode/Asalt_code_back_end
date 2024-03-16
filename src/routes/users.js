@@ -16,8 +16,7 @@ routers.post('/change-password', UserController.changePassword)
 routers.get('/get-all-user',Auth.authorization, Auth.adminGuard, UserController.getAllUser)
 routers.get('/get-user-by-id/:id', Auth.authorization, Auth.adminGuard, UserController.getUserById)
 
-
-routers.get('/get-user', Auth.authorization, Auth.userGuard, UserController.getUser)
+routers.get('/get-user', Auth.authorization, UserController.getUser)
 
 routers.delete('/delete-user-by-id/:id', Auth.authorization, Auth.adminGuard, UserController.deletetUserById)
 routers.put('/edit-user/:id', Auth.authorization, Auth.adminGuard, UserController.editUser)

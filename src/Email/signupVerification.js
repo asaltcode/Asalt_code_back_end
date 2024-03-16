@@ -15,7 +15,6 @@ const signupVerify = async (name, email, verifyLink) =>{
  
   // const website = 'http://localhost:5173/verify'
   const website = 'https://asalt-code-front-end.vercel.app/verify'
-  // const website = 'https://getbootstrap.com/docs'
 
   const mailOptions = {
     from: "psumma999@gmail.com",
@@ -30,10 +29,12 @@ const signupVerify = async (name, email, verifyLink) =>{
         <p>Thank you for signing up with <b>Asalt code!</b> To complete the registration process, please verify your email address by clicking the link below:</p>
         <div style="display: flex;"> 
             
-        <a href='${website}?token=${verifyLink}' target="_blank" role="link" rel="noopener noreferrer">${website}</a>
-            
+        <div style="display: flex;	justify-content: center;">
+        <a href='${website}?token=${verifyLink}' target="_blank" role="link" rel="noopener noreferrer"><button style="padding: 10px; background: blue; border: none; border-radius: 10px; color: white;" >Verify My Email Address</button></a>
+        </div>            
         </div>
         <p>If you didn't sign up for Asalt Code, please ignore this email.</p><br>   
+        <div style="text-align: center; color: red; font-family: cursive;">The link expires in 2 hours.</div>
         <p>Best Regards</p>
         <p>Asalt Code Private Limited Team</p>
     </div>`

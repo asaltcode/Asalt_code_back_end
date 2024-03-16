@@ -1,9 +1,8 @@
 import UserModel from "../models/userModel.js";
 import Auth from "../helper/auth.js";
-import nodemailer from "nodemailer";
 import crypto from 'crypto'
-import signupVerification from '../helper/signupVerification.js'
-import OtpVerify from "../helper/OtpVerify.js";
+import signupVerification from '../Email/signupVerification.js'
+import OtpVerify from "../Email/OtpVerify.js";
 import jwt from 'jsonwebtoken'
 
 let generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString() //Otp Gereator
@@ -15,11 +14,18 @@ const signup = async (req, res) => {      //user Signup
       if (!user) {
         //Hash the password
         const {name, email, password} = req.body
-        req.body.password = await Auth.createHash(password);
-        req.body.verificationToken = generateVerificationToken();//set verification token 
-        signupVerification.signupVerify(name, email, req.body.verificationToken)//Verification mail send
-        await UserModel.create(req.body)
-         
+        const hash = await Auth.createHash(password);
+        const verificationToken = generateVerificationToken();//set verification token 
+        signupVerification.signupVerify(name, email, verificationToken)//Verification mail send
+        // await UserModel.create(req.body)
+        const user =  await UserModel.create({
+          name,
+          email,
+          password: hash,
+          verificationToken
+        })
+        console.log(user)
+        setTimeout(async () => {user.verificationToken = null ; await user.save()} , 7200000); // The link expires in 2 hours.
         res.status(200).send({
           message: "Check your email !",
         });
@@ -101,7 +107,6 @@ const login = async (req, res) => { //user Login
       //compare the input password and hash
       if (user.verified) {
                 if (await Auth.compareHash(password, user.password)) {
-
                   const details = {
                     email: user.email,
                     hash : user.password,
@@ -115,8 +120,7 @@ const login = async (req, res) => { //user Login
                     message: "Login successfully",
                     token,
                     name: user.name, 
-                    role: user.role, 
-                
+                    role: user.role,                 
                   })
                 } else {
                   res.status(400).send({
@@ -125,8 +129,13 @@ const login = async (req, res) => { //user Login
                   });
                 }
         } else {
-          res.status(400).send({
-            message: `Please verify the link in your email to proceed`,
+          const verificationToken = generateVerificationToken()
+          user.verificationToken = verificationToken
+          await user.save()
+          signupVerification.signupVerify(user.name, user.email, user.verificationToken)//Verification mail send
+          setTimeout(async () => {user.verificationToken = null ; await user.save()} , 7200000); // The link expires in 2 hours.
+          res.status(202).send({
+            message: `You are not verified yet. A link has been sent to your email.`,
           });
         }
 
@@ -193,7 +202,7 @@ const forgot = async (req, res) => {
       // await UserModel.findOneAndUpdate({ email: user.email }, { otp: hashOTP });
       user.otp = hashOTP
       user.save()
-      setTimeout(async () => {user.otp = null ; user.save()} , 70000);
+      setTimeout(async () => {user.otp = null ; user.save()} , 120000);
       console.log(OTP);
       OtpVerify.OTPverification(user.name, user.email, OTP)
       res.status(200).send({

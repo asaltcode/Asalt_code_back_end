@@ -27,6 +27,7 @@ const OTPverification = async (name, email, OTP) =>{
         <p>You have requested to reset your password. Use the following OTP to reset your password:</p>
         <p>OTP : ${OTP}</p>
         <p>This OTP is valid for a limited time. If you did not request a password reset, please ignore this email.</p><br>   
+        <p>The OTP expires in 2 minutes</p><br>   
         <p>Thank you,</p>
         <p>Asalt Code Private Limited</p>
     </div>

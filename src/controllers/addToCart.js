@@ -58,20 +58,14 @@ const getAllCart = async (req, res) => {
     });
   }
 };
-const getCart = async (req, res) => {
-  try {
-  } catch (error) {
-    res.status(500).send({
-      message: "Internal Server Error",
-      error: error.message,
-    });
-  }
-};
 const delAllCart = async (req, res) => {
+  const token = req?.headers?.authorization?.split(" ")[1];
+  const payload = await Auth.decodeToken(token);
+  const user = await UserModel.findOne({$and: [{ _id: payload.id }, { email: payload.email }],});
   try {
-    const cart = await AddToCartModel.find({ user_id: req.body.user_id });
-    if (cart.length !== 0) {
-      await AddToCartModel.deleteMany({ user_id: req.body.user_id });
+    const cart = await AddToCartModel.find({ user_id: user._id });
+    if (cart.length !== 0 && user) {
+      await AddToCartModel.deleteMany({ user_id: user._id });
       res.send({ message: "Remove from all cart" });
     } else {
       res.status(400).send({
@@ -110,4 +104,4 @@ const delCart = async (req, res) => {
   }
 };
 
-export default { addCart, getAllCart, getCart, delAllCart, delCart };
+export default { addCart, getAllCart, delAllCart, delCart };
