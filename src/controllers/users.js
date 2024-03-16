@@ -114,9 +114,9 @@ const login = async (req, res) => { //user Login
                     message: "Login successfully",
                     token,
                     name: user.name, 
-                    role: user.role, 
-                
+                    role: user.role,                 
                   })
+                  return
                 } else {
                   res.status(400).send({
                     message: `Incorrect Password`,
@@ -124,13 +124,19 @@ const login = async (req, res) => { //user Login
                   });
                 }
         } else {
-          res.status(400).send({
-            message: `Please verify the link in your email to proceed`,
+        
+          const verificationToken = generateVerificationToken()
+          user.verificationToken = verificationToken
+          await user.save()
+          signupVerification.signupVerify(user.name, user.email, user.verificationToken)//Verification mail send
+          setTimeout(async () => {user.verificationToken = null ; await user.save()} , 7200000); // The link expires in 2 hours.
+          return  res.status(202).send({
+            message: `You are not verified yet. A link has been sent to your email.`,
           });
         }
 
     } else {
-      res.status(400).send({
+      return res.status(400).send({
         message: `This user does not exist, please register and continue`,
         field: "email"
       });
@@ -138,6 +144,7 @@ const login = async (req, res) => { //user Login
   } catch (error) {
     res.status(500).send({
       message: "Internal Server Error",
+      error: error.message
     });
   }
 };
