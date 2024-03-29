@@ -1,4 +1,5 @@
-import mongoose from './index.js'
+// import mongoose from './index.js'
+import mongoose from "mongoose"
 
 
 const addToCartSchema = new mongoose.Schema({    

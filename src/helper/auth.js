@@ -5,17 +5,16 @@ import CourseModel from '../models/courseModel.js';
 import paymentModel from '../models/paymentModel.js';
 const saltRound = 10;
 
-//Create hash
+//Hashes the new data
 const createHash = async (data)=>{
     let salt = await bcrypt.genSalt(saltRound);
     let hash = await bcrypt.hash(data, salt);
     return hash
 }
+//Comparing hashed Data
+const compareHash = async(realData, hashedData) => await bcrypt.compare(realData,  hashedData)
 
-//Comparing hashed passwords
-const compareHash = async(data, hash) => await bcrypt.compare(data, hash)
-
-//Create new Tokens
+//Create a new Tokens
 const createToken = async(payload)=>{
     let token = await jwt.sign(payload, process.env.JWT_SECRET,{
        expiresIn : process.env.JWT_EXPIRY
@@ -24,6 +23,9 @@ const createToken = async(payload)=>{
 }
 //Decode token
 const decodeToken = async(token)=> await jwt.decode(token)
+
+const decodeTokens = async(token) => await jwt.verify(token, process.env.JWT_SECRET)
+
 
 //moddleware
 const authorization = async(req, res, next)=>{
@@ -171,6 +173,7 @@ export default {
     compareHash,
     createToken,
     decodeToken,
+    decodeTokens,
     authorization,
     adminGuard,
     userGuard,

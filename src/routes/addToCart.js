@@ -1,11 +1,11 @@
 import express from "express";
 import AddToCartController from '../controllers/addToCart.js'
-import Auth from "../helper/auth.js";
+import Authenticate from "../middleware/authenticate.js";
 
 const routers = express.Router()
-routers.post('/add-to-cart',Auth.authorization, Auth.userGuard, AddToCartController.addCart)
-routers.delete('/del-cart',Auth.authorization, Auth.userGuard, AddToCartController.delCart)
-routers.delete('/del-all-cart',Auth.authorization, Auth.userGuard, AddToCartController.delAllCart)
-routers.get('/get-all-cart',Auth.authorization, Auth.userGuard, AddToCartController.getAllCart)
-
+const user = "user"
+routers.post('/cart/:id', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(user), AddToCartController.addCart)
+routers.delete('/cart/:id', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(user), AddToCartController.delCart)
+routers.delete('/carts', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(user), AddToCartController.delAllCart)
+routers.get('/carts', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(user, "admin"), AddToCartController.getAllCart)
 export default routers

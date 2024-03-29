@@ -1,4 +1,4 @@
-import mongoose from './index.js'
+import mongoose from "mongoose";
 // Custom validator function for URL format
 function validateURL(url) {
     const urlRegex = /^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm;

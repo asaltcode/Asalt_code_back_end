@@ -1,147 +1,121 @@
-import CourseModel from "../models/courseModel.js"
-const addCourse = async(req, res) =>{
-    try {
-       const course = await CourseModel.findOne({thumbnail: req.body.thumbnail})
-       if(!course){
-        await CourseModel.create(req.body)
-        res.status(200).send({
-            message : "Course Added Successfully"
-        })
-       }else{
-        res.status(400).send({
-            message: 'This course already exist'
-        })
-       }
-    } catch (error) {
-        res.status(500).send({
-            message: "Internal Server Error",
-            error: error.message,
-          });
-    }
-}
-const getAllCourse = async(req, res) =>{
-    try {
-        const courses = await CourseModel.find()
-        if(courses){
-            res.status(200).send({
-                message: "course featched Successfully",
-                courses
-            })
-        }else{
-            res.status(404).send({
-                message: "Not Found"
-            })
-        }
-    } catch (error) {
-        res.status(500).send({
-            message: "Internal Server Error",
-            error: error.message,
-          });
-    }
-}
-const getCourse = async(req, res) =>{
-    try {
-        const course = await CourseModel.find({visibility: true}, {visibility: 0})
-        if(course){
-            res.status(200).send({
-                message: "course featched Successfully",
-                course
-            })
-        }else{
-            res.status(404).send({
-                message: "Not Found"
-            })
-        }
-    } catch (error) {
-        res.status(500).send({
-            message: "Internal Server Error",
-            error: error.message,
-          });
-    }
-}
-const delCourse = async(req, res) =>{
-    try {
-        const course = await CourseModel.findById({ _id: req.params.id });
-        if (course) {
-          await CourseModel.deleteOne({ _id: req.params.id });
-          res.status(200).send({
-            message: "Course Deleted Successfully",
-          });
-        } else {
-          res.status(400).send({
-            message: `Invalid User Id`,
-          });
-        }
-      } catch (error) {
-        res.status(500).send({
-          message: "Internal Server Error",
-        });
-      }
-}
-const editCourse = async(req, res) =>{
-    try {
-        const {title, author, price, category, visibility, description, thumbnail} = req.body
-        const course = await CourseModel.findOne({ _id: req.params.id });   
-        const BodyThumbnail = await CourseModel.findOne({thumbnail: req.body.thumbnail})     
-        if(!course){
-          return res.status(404).send({
-            message: "Not Found"
-          })
-        } 
-        if(thumbnail === course.thumbnail || thumbnail !== course.thumbnail){
-        if(!BodyThumbnail ||  thumbnail === course.thumbnail){
-            course.title = title
-            course.author = author
-            course.price = price
-            course.category = category
-            course.visibility = visibility
-            course.description = description
-            course.thumbnail = thumbnail
-            await course.save()
-            return res.status(200).send({
-                message: "Updated Successfully"
-               })
-        }else{
-             res.status(400).send({
-                message : "This thubnail already exist"
-         })
-        }  
-    } else{
-        return res.status(501).send({
-          message : "Not Implemented",
-          error: error.message,
-        })
-      }   
-        
-      } catch (error) {
-        res.status(500).send({
-          message: "Internal Server Error",
-          error: error.message,
-        });
-      }
-}
-const getCourseById = async(req, res) =>{
-    try {
-        const course = await CourseModel.findOne({ _id: req.params.id });        
-        if(course){
-            const course = await CourseModel.findOne({ _id: req.params.id },{createdAt: 0}); 
-           res.status(200).send({
-            message: 'Course featched Successfully',
-            course
-           })
-        }else{
-            return res.status(404).send({
-                message: "Not Found"
-              })
-            } 
-        
-      } catch (error) {
-        res.status(500).send({
-          message: "Internal Server Error",
-          error: error.message,
-        });
-      }
-}
+import Course from "../models/courseModel.js";
+import ErrorHandler from "../utils/errorHandler.js";
+import { catchAsyncError } from "../middleware/catchAsyncError.js";
+import APIFeatures from "../utils/apiFeatures.js";
+import paymentModel from "../models/paymentModel.js";
 
-export default {addCourse, getCourse, getAllCourse, delCourse, editCourse, getCourseById}
+//Create Course - /api/v1/course/new
+const addCourse = catchAsyncError(async (req, res, next) => {
+  const course = await Course.findOne({ thumbnail: req.body.thumbnail });
+  if (!course) {
+    await Course.create(req.body);
+    res.status(200).send({
+      message: "Course Added Successfully",
+    });
+  } else {
+    res.status(400).send({
+      message: "This course already exist",
+    });
+  }
+});
+//Get Courses - /api/v1/admin/courses
+const getAdminCourse = catchAsyncError(async (req, res, next) => {
+  const courses = await Course.find();
+  if(!courses){
+    return next(new ErrorHandler("Not found", 400))
+  }
+    res.status(200).send({
+      success: true,
+      courses,
+      message: "courses featched Successfully",
+    });
+  
+});
+//Get Courses - /api/v1/courses
+const getCourses = catchAsyncError(async (req, res, next) => {
+  let resPerPage = 8
+  const apiFeatures = new APIFeatures(Course.find({ visibility: true },{ visibility: 0 }), req.query).search().filter().paginate(resPerPage)
 
+  const courses = await apiFeatures.query;
+  res.status(200).send({
+    success: true,
+    count: courses.length,
+    courses,
+  });
+});
+//Delete Courses - /api/v1/course/:id
+const delCourse = catchAsyncError(async (req, res, next) => {
+  const course = await Course.findOneAndDelete({ _id: req.params.id });
+  if (!course) {
+    return next(new ErrorHandler("Course Not Found", 404));
+  }
+  res.status(200).send({
+    message: "Course Deleted!",
+  });
+});
+//Edit Courses - /api/v1/course/:id
+const editCourse = catchAsyncError(async (req, res, next) => {
+  let course = await Course.findById({ _id: req.params.id });
+  if (!course) {
+    return next(new ErrorHandler("Course Not Found Test", 404));
+  }
+  course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).send({
+   success: true,
+   message: "Updated Successfully"
+  });
+})
+//Get Single Courses - /api/v1/course/:id
+const getCourseById = catchAsyncError(async (req, res, next) => {
+  const course = await Course.findOne({ $and:[{_id: req.params.id}, {visibility: true}] });
+  if(!course){
+    return next(new ErrorHandler("Course Not Found", 400))
+  }
+    res.status(200).send({
+      success: true,
+      course,
+    });
+})
+//Get Single Courses - /api/v1/my-crouses
+const myCourses = catchAsyncError(async (req, res, next) => {
+  // Check if user ID is missing
+  if (!req.user.id) {
+    return next(new ErrorHandler("Bad request", 400));
+  }
+  
+  const userId = req.user.id;  
+  // Find all payment records for the user
+  const paymentStatus = await paymentModel.find({ user_id: userId });
+
+  // Filter payment records to include only those with access and matching user ID
+  const courseIds = paymentStatus
+    .filter(data => data.access && req.user.id === `${data.user_id}`)
+    .map(data => data.course_id);
+
+  // Fetch courses for each course ID
+  const courses = await Promise.all(
+    courseIds.map(async courseId => {
+      return Course.findOne({ _id: courseId, visibility: true });
+    })
+  );
+
+  res.status(200).send({
+    success: true,
+    courses
+  });
+});
+
+
+export default {
+  addCourse,
+  getCourses,
+  getAdminCourse,
+  delCourse,
+  editCourse,
+  getCourseById,
+  myCourses,
+};

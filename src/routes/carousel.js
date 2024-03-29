@@ -1,13 +1,18 @@
 import carouselController from "../controllers/carousel.js";
-import Auth from "../helper/auth.js";
 import express from "express";
+import Authenticate from "../middleware/authenticate.js";
 
 const routers = express.Router()
-routers.post('/add-carousel', Auth.authorization, Auth.adminGuard, carouselController.addCrousel)
-routers.get('/get-carousel', carouselController.getCrousel)
-routers.post('/get-all-carousel',  Auth.authorization, Auth.adminGuard, carouselController.getAllCrousel)
-routers.post('/get-carousel-by-id/:id',  Auth.authorization, Auth.adminGuard, carouselController.getCrouselById)
-routers.put('/edit-carousel/:id',  Auth.authorization, Auth.adminGuard, carouselController.editCrousel)
-routers.delete('/del-carousel', carouselController.delCrousel)
+routers.get('/carousels', carouselController.getCarousel)
+
+const admin = "admin"
+// Admin Routers
+routers.get('/admin/carousels',  Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), carouselController.getAllCarousel)
+routers.post('/admin/carousel', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), carouselController.addCarousel)
+
+routers.route("/admin/carousel/:id")
+                                    .get(Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), carouselController.getCarouselById)
+                                    .put(Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), carouselController.editCarousel)
+                                    .delete(Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), carouselController.delCarousel)
 
 export default routers

@@ -4,8 +4,8 @@ import nodemailer from 'nodemailer'// import express from 'express'
 const signupVerify = async (name, email, verifyLink) =>{
   const transporter = nodemailer.createTransport({
     service: "Gmail",
-    host: "smtp.gmail.com",
-    port: 465,
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
     secure: true,
     auth: {
       user: process.env.USER,
@@ -17,7 +17,7 @@ const signupVerify = async (name, email, verifyLink) =>{
   const website = 'https://asalt-code-front-end.vercel.app/verify'
 
   const mailOptions = {
-    from: "psumma999@gmail.com",
+    from: process.env.USER,
     to: email,
     subject: "Verify Your Account - Asalt Code",
     html: `<div style="text-align: center; font-family: cursive;">

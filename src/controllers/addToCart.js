@@ -1,107 +1,63 @@
 import AddToCartModel from "../models/addToCardModel.js";
 import CourseModel from "../models/courseModel.js";
-import UserModel from "../models/userModel.js";
-import Auth from "../helper/auth.js";
+import { catchAsyncError } from "../middleware/catchAsyncError.js";
+import ErrorHandler from "../utils/errorHandler.js";
 
-const addCart = async (req, res) => {
-  const token = req?.headers?.authorization?.split(" ")[1];
-  const payload = await Auth.decodeToken(token);
-  const user = await UserModel.findOne({$and: [{ _id: payload.id }, { email: payload.email }],});
-  try {
-    const course = await CourseModel.findOne({ _id: req.body.course_id });
-    const cart = await AddToCartModel.findOne({$and: [{ course_id: req.body.course_id }, { user_id: payload.id }],
-    });
-    if (user && course) {
-      if (!cart) {
-        const datas = {
-          user_id: user._id,
-          course_id: course._id,
-          price: course.price,
-          title: course.title,
-          thumbnail: course.thumbnail,
-        };
-        await AddToCartModel.create(datas);
-        res.send({ message: "product added" });
-      } else {
-        res.status(208).send({
-          message: "This course already added",
-        });
-      }
-    } else {
-      res.status(400).send({
-        message: "Not Found",
-      });
-    }
-  } catch (error) {
-    res.status(500).send({
-      message: "Internal Server Error",
-      error: error.message,
-    });
+const addCart = catchAsyncError(async (req, res, next) => {
+  const course = await CourseModel.findOne({
+    $and: [{ _id: req.params.id }, { visibility: true }],
+  });
+  if (!course) {
+    return next(new ErrorHandler("Course not found", 404));
   }
-};
-const getAllCart = async (req, res) => {
-  const token = req?.headers?.authorization?.split(" ")[1];
-  const payload = await Auth.decodeToken(token);
-  const user = await UserModel.findOne({$and: [{ _id: payload.id }, { email: payload.email }],});
-  try {
-    const cart = await AddToCartModel.find({ user_id: user._id }, {user_id: 0});
-    if (cart.length !== 0) {
-      res.send({ message: "Cart featched successfully", cartList: cart });
-    } else {
-      res.status(400).send({
-        message: "Not Found",
-      });
-    }
-  } catch (error) {
-    res.status(500).send({
-      message: "Internal Server Error",
-    });
+  const carts = await AddToCartModel.findOne({
+    $and: [{ course_id: req.params.id }, { user_id: req.user.id }],
+  });
+  if (carts) {
+    return next(new ErrorHandler("Cart already added", 409));
   }
-};
-const delAllCart = async (req, res) => {
-  const token = req?.headers?.authorization?.split(" ")[1];
-  const payload = await Auth.decodeToken(token);
-  const user = await UserModel.findOne({$and: [{ _id: payload.id }, { email: payload.email }],});
-  try {
-    const cart = await AddToCartModel.find({ user_id: user._id });
-    if (cart.length !== 0 && user) {
-      await AddToCartModel.deleteMany({ user_id: user._id });
-      res.send({ message: "Remove from all cart" });
-    } else {
-      res.status(400).send({
-        message: "Not Found",
-      });
-    }
-  } catch (error) {
-    res.status(500).send({
-      message: "Internal Server Error",
-    });
+  const datas = {
+    user_id: req.user.id,
+    course_id: course._id,
+    price: course.price,
+    title: course.title,
+    thumbnail: course.thumbnail,
+  };
+  const cart = await AddToCartModel.create(datas);
+  res.status(201).send({ success: true, cart });
+});
+const getAllCart = catchAsyncError(async (req, res, next) => {
+  const carts = await AddToCartModel.find(
+    { user_id: req.user.id },
+    { user_id: 0 }
+  );
+  if (!carts) {
+    next(new ErrorHandler("Cart is empty", 404));
   }
-};
+  res.send({ success: true, carts });
+});
+const delAllCart = catchAsyncError(async (req, res) => {
+  const cart = await AddToCartModel.find({user_id: req.user.id})
+  if(!cart){
+    return next(new ErrorHandler("Cart Not Found", 404))
+  }
+  await AddToCartModel.deleteMany({user_id: req.user.id})
+  res.status(204).send({
+    success: true,
+    message: "Cart removed successfully!"
+  })
+})
 
-const delCart = async (req, res) => {
-  const token = req?.headers?.authorization?.split(" ")[1];
-  const payload = await Auth.decodeToken(token);
-  const user = await UserModel.findOne({$and: [{ _id: payload.id }, { email: payload.email }],});
-  try {
-    const cart = await AddToCartModel.findOne({$and: [{ course_id: req.body.course_id }, { user_id: payload.id}],});
-    if (cart) {
-      if (user) {
-        await AddToCartModel.deleteOne({ course_id: req.body.course_id });
-        return res.send({ message: "Course remove from cart" });
-      } else {
-        return res.status(401).send({ message: "Unauthorized" });
-      }
-    } else {
-      res.status(400).send({
-        message: "Not Found",
-      });
-    }
-  } catch (error) {
-    res.status(500).send({
-      message: "Internal Server Error",
-    });
+const delCart = catchAsyncError(async (req, res, next) => {
+  const cart = await AddToCartModel.findOne({ $and: [{ course_id: req.params.id }, { user_id: req.user.id }], });
+  if(!cart){
+    return next(new ErrorHandler("Cart Not Found", 404))
   }
-};
+  await AddToCartModel.deleteOne({_id: cart._id})
+  res.status(204).send({
+      success: true,
+      message: "Cart removed successfully!"
+  })
+})
 
 export default { addCart, getAllCart, delAllCart, delCart };

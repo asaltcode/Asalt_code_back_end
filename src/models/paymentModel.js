@@ -1,56 +1,51 @@
-import mongoose from './index.js'
+import mongoose from "mongoose";
 
 
-const paymentSchema = new mongoose.Schema({    
+const paymentSchema = new mongoose.Schema({
     price: {
-        type : Number,
-        required : true,        
+        type: Number,
+        required: true,
     },
     title: {
-        type : String,
-        required : true,        
+        type: String,
+        required: true,
     },
     course_id: {
         type: mongoose.Schema.Types.ObjectId,
-        require: true,
+        required: true,
         ref: 'course'
     },
     payment_status: {
         type: String,
         default: null
     },
-    access:{
+    access: {
         type: Boolean,
         default: false
     },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: "user"    
+        ref: "user"
     },
     order_id: {
-        type: String,        
+        type: String,
         required: true
-    },    
-    paymentId: {
-        type: String,
-        default: null
     },
-    signature: {
-        type: String,
-        default: null
-    },  
-    createdAt:{
+    paymentId: String,
+    signature: String,
+    paidAt: {
+        type: Date
+    },
+    createdAt: {
         type: Date,
-        default: Date.now(),        
+        default: Date.now
     },
-},
-{
-    collection : "payment",
-    versionKey: false,
-}
-)
+}, {
+    collection: "payment",
+    versionKey: false
+});
 
-const paymentModel = mongoose.model('payment', paymentSchema)
+const paymentModel = mongoose.model('payment', paymentSchema);
 
-export default paymentModel
+export default paymentModel;

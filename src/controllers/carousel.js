@@ -1,6 +1,8 @@
+import { catchAsyncError } from "../middleware/catchAsyncError.js"
 import CarouselModel from "../models/carouselModel.js"
+import ErrorHandler from "../utils/errorHandler.js"
 
-const addCrousel = async(req, res) =>{
+const addCarousel = async(req, res) =>{
     try {
        const image = await CarouselModel.findOne({imageUrl: req.body.imageUrl})
        if(!image){
@@ -20,106 +22,62 @@ const addCrousel = async(req, res) =>{
           });
     }
 }
-const getCrousel = async(req, res) =>{
-    try {
-        const image = await CarouselModel.find({visibility: true})
-        if(image){
-            res.status(200).send({
-                message: "image featched Successfully",
-                image
-            })
-        }else{
-            res.status(404).send({
-                message: "Not Found"
-            })
-        }
-    } catch (error) {
-        res.status(500).send({
-            message: "Internal Server Error",
-            error: error.message,
-          });
+const getCarousel = catchAsyncError(async(req, res, next) =>{
+    const carousel = await CarouselModel.find({visibility: true})
+    if(!carousel){
+        return next(new ErrorHandler("Carousel not found", 404))
     }
-}
-const getAllCrousel = async(req, res) =>{
-    try {
-        const image = await CarouselModel.find()
-        if(image){
-            res.status(200).send({
-                message: "image featched Successfully",
-                image
-            })
-        }else{
-            res.status(404).send({
-                message: "Not Found"
-            })
-        }
-    } catch (error) {
-        res.status(500).send({
-            message: "Internal Server Error",
-            error: error.message,
-          });
+    res.status(200).send({
+        success: true,
+        carousel
+    })
+})
+const getAllCarousel = catchAsyncError(async(req, res, next) =>{    
+    const carousels = await CarouselModel.find()   
+    if(!carousels){
+        return next(new ErrorHandler("Carousel not found", 404))
     }
-}
-const delCrousel = async(req, res) =>{
-    try {
-        const carousel = await CarouselModel.findById({ _id: req.params.id });
-        if (carousel) {
-          await CarouselModel.deleteOne({ _id: req.params.id });
-          res.status(200).send({
-            message: "Carousel Deleted Successfully",
-          });
-        } else {
-          res.status(404).send({
-            message: `NOt Found`,
-          });
-        }
-    } catch (error) {
-        res.status(500).send({
-            message: "Internal Server Error",
-            error: error.message,
-          });
+    if(req.user.role !== "admin"){
+        return next(new ErrorHandler("Unauthorised access", 401))
     }
-}
-const getCrouselById = async(req, res) =>{
-    try {
-        const carousel = await CarouselModel.findOne({ _id: req.params.id });
-        if (carousel) {
-          res.status(200).send({
-            message: "Carousel fetched Successfully",
-            carousel
-          });
-        } else {
-          res.status(404).send({
-            message: `NOt Found`,
-          });
-        }
-    } catch (error) {
-        res.status(500).send({
-            message: "Internal Server Error",
-            error: error.message,
-          });
-    }
-}
-const editCrousel = async(req, res) =>{
-    try {
-        const carousel = await CarouselModel.findById({ _id: req.params.id });
-        if (carousel) {
-            const {imageUrl, imageAlt, description, visibility} = req.body
-            carousel.imageUrl = imageUrl
-            carousel.imageAlt = imageAlt
-            carousel.description = description
-            carousel.visibility = visibility
-            await carousel.save()
-          res.status(200).send({
-            message: "Syllabus Deleted Successfully",
-          });
-        }
-    } catch (error) {
-        res.status(500).send({
-            message: "Internal Server Error",
-            error: error.message,
-          });
-    }
-}
 
-export default {addCrousel, getCrousel, getAllCrousel, delCrousel, editCrousel, getCrouselById}
+    res.status(200).send({
+        success: true,
+        count: carousels.length,
+        carousels
+    })
+})
+const delCarousel = catchAsyncError(async(req, res, next) =>{
+    const carousel = await CarouselModel.findByIdAndDelete({ _id: req.params.id });
+        if (!carousel) {
+            return next(new ErrorHandler("Caroulse not Found", 404))
+        }
+        res.status(204).send({
+           success: true,   
+           message: "Deleted Successfully!"
+        });
+})
+const getCarouselById = catchAsyncError(async(req, res, next) =>{
+    const carousel = await CarouselModel.findById({ _id: req.params.id });
+        if (!carousel) {
+            return next(new ErrorHandler("Caroulse not Found", 404))
+        }
+        res.status(200).send({
+           success: true,   
+           message: "Get Successfully!",
+           carousel
+        });
+})
+const editCarousel = catchAsyncError(async(req, res, next) =>{
+    let carousel = await CarouselModel.findById({_id: req.params.id});
+    if(!carousel) {
+        return next(new ErrorHandler("Not found", 404))
+    }
+    carousel = await CarouselModel.findByIdAndUpdate(req.params.id, req.body,{new : true, runValidators: true})
+    res.status(201).send({
+        success: true,
+        carousel
+    })
+})
+
+export default {addCarousel, getCarousel, getAllCarousel, delCarousel, editCarousel, getCarouselById}

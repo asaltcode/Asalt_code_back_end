@@ -1,4 +1,4 @@
-import mongoose from "./index.js";
+import mongoose from "mongoose";
 
 const imageSchema = new mongoose.Schema(
   {

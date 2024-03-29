@@ -1,10 +1,10 @@
-import mongoose from './index.js'
+import mongoose from "mongoose";
 
 
 const courseSchema = new mongoose.Schema({
     thumbnail: {
         type: String,
-        required: true,
+        required: [true, "Thumbnail is Required"],
         validate: {
           validator: function(value) {
             // Regular expression to validate URL format
@@ -17,7 +17,12 @@ const courseSchema = new mongoose.Schema({
     },
     price: {
         type : Number,
-        required : true,        
+        required : [true, "Price is Required"],  
+        default: 0.0      
+    },
+    ratings : {
+        type: String,
+        default: 0
     },
     syllabus: {
         type: mongoose.Schema.Types.ObjectId,
@@ -29,7 +34,7 @@ const courseSchema = new mongoose.Schema({
     },
     title: {
         type: String,
-        required: true,
+        required: [true, "Title is Required"]
     },
     description: {
         type: String,
@@ -37,11 +42,38 @@ const courseSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        default: ""
+        enum: {
+            values: [
+                "Hacking",
+                "Web Development",
+                "Data Science",
+                "Career"
+            ],
+            message: "Please select correct category"
+        }
     },
+    reviews: [
+        {
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "user"
+            },
+            rating: {
+                type: String,
+                required: true
+            },
+            comment: {
+                type: String,
+                required: true
+            }
+        }
+    ],
     visibility: {
         type: Boolean,
         default: true
+    },
+    user: {
+        type : mongoose.Schema.Types.ObjectId
     },
     createdAt:{
         type: Date,
