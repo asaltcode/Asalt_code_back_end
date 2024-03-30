@@ -1,5 +1,7 @@
 import app from './src/app.js'; // Assuming app is exported as default from app.js
 import connectDatabase from './src/config/database.js';
+import dotenv from 'dotenv'
+dotenv.config()
 
 connectDatabase();
 

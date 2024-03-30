@@ -5,6 +5,8 @@ import Authenticate from '../middleware/authenticate.js';
 import multer from 'multer';
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url';
+import { upload } from '../controllers/uploadCloud.js';
+import timeout from 'connect-timeout'
 
 
 const __filename = fileURLToPath(import.meta.url)
@@ -18,7 +20,7 @@ const fileFilter = function(req, file, cb) {
     cb(null, true);
 };
 
-const upload = multer({storage: multer.diskStorage({
+const uploads = multer({storage: multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, path.join(__dirname,'..', 'uploads/user'))
     },
@@ -51,7 +53,7 @@ routers.post('/admin-product',Auth.authorization,Auth.adminProduct)
 
 // Admin DashBard Routes
 
-routers.post("/profile/update", Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin, "user"),upload.single('avatar'), UserController.profileUpdate)
+routers.post("/profile/update", Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin, "user"), timeout('10m'), upload("image").single("avatar"), UserController.profileUpdate)
 
 routers.get('/user', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin, "user"), UserController.getUser)
 routers.get('/admin/users',Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), UserController.getAllUser)

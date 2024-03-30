@@ -1,15 +1,13 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import AppRoutes from "./routes/index.js";
 import cookieParser from 'cookie-parser'
 import errorHandl from "./middleware/error.js";
 import path, { dirname } from "path"
 import { fileURLToPath } from "url";
-dotenv.config();
+
 
 const __filename = fileURLToPath(import.meta.url)
-
 const __dirname = dirname(__filename);
 const app = express();
 

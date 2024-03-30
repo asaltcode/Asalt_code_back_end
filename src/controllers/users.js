@@ -1,6 +1,5 @@
 import UserModel from "../models/userModel.js";
 import Auth from "../helper/auth.js";
-import nodemailer from "nodemailer";
 import crypto from "crypto";
 import signupVerification from "../Email/signupVerification.js";
 import OtpVerify from "../Email/OtpVerify.js";
@@ -8,14 +7,9 @@ import jwt from "jsonwebtoken";
 import { catchAsyncError } from "../middleware/catchAsyncError.js";
 import ErrorHandler from "../utils/errorHandler.js";
 import sendToken from "../utils/JWT.js";
-import fs from "fs/promises"
-import path, { dirname } from 'path'
-import { fileURLToPath } from 'url';
+import cloudinary from "../utils/cloudinary.js";
 
 
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename);
 
 let generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString(); //Otp Gereator
 let generateVerificationToken = () => crypto.randomBytes(20).toString("hex"); //Generate a verifiction token
@@ -413,20 +407,20 @@ const editUser = catchAsyncError(async (req, res, next) => {
 //   }
 // };
 
+function extractPublicId(cloudinaryUrl) {
+  const match = cloudinaryUrl.match(/\/v\d+\/(.*?)\.\w{3,4}$/);
+  return match ? match[1] : null;
+}
 const profileUpdate = catchAsyncError(async (req, res, next) => {
   let avatar;
 
   if (req.file) {
     const user = await UserModel.findById(req.user.id);
-    const file = user.avatar.split("user/");
-    const imagePath = path.join(__dirname, "..", `uploads/user/${file[1]}`);
-
-    // Delete the existing photo if the new photo has a different original name
-    if (req.file.originalname !== file[1] || !imagePath) {
-      await fs.unlink(imagePath);
+    const publicId = extractPublicId(user.avatar);
+    if(publicId){
+      await cloudinary.uploader.destroy(publicId) // Deletes a photo that is already in the database
     }
-
-    avatar = `${req.protocol}://${req.get("host")}/uploads/user/${req.file.originalname}`;
+    avatar = req.file.path;
   }
 
   const { email, name, lastName, gender, dob } = req.body;
