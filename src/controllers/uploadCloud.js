@@ -21,7 +21,6 @@ export const upload = (resourceType) => {
   return multer({
       storage: storage,
       fileFilter: (req, file, cb) => {
-        console.log(file.mimetype)
           if ((resourceType === 'image' && ['jpg', 'jpeg', 'png'].includes(file.mimetype.split('/')[1]) )  || //&& ['jpg', 'jpeg', 'png'].includes(file.mimetype)
               (resourceType === 'video' && file.mimetype === 'video/mp4')) {
               cb(null, true);
