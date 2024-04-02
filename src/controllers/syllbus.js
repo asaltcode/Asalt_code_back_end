@@ -92,44 +92,9 @@ const getSyllabusByCourseIdAdmin = catchAsyncError(async (req, res, next) => {
     syllabus: syllabusWithTopics,
   });
 })
-const getSyllabusByCourseIdNormal = async (req, res) => {
-  try {
-    const syllabus = await SyllabusModle.find({ course_id: req.params.id });
-    if (syllabus) {
-      const syllabus = await SyllabusModle.find({$and: [{course_id: req.params.id}, {visibility: true}]},{createdAt:0});
-      const topic = [];
-      for (let i in syllabus) {
-        topic.push(
-          ...(await TopicModle.find(
-            { $and: [ { syllabus_id: syllabus[i]._id }, {visibility: true}] },
-            { _id: 0, topic_video_id: 0, visibility: 0, createdAt: 0, topic_video: 0}
-          ))
-        );
-      }
-
-      for (let i in syllabus) {
-        for (let y in topic) {
-          if (`${syllabus[i]._id}` === `${topic[y].syllabus_id}`) {
-            syllabus[i].items.push(topic[y]);
-          }
-        }
-      }
-      res.status(200).send({
-        message: "syllabus featched Successfully",
-        syllabus,
-      });
-    } else {
-      return res.status(404).send({
-        message: "Not Found",
-      });
-    }
-  } catch (error) {
-    res.status(500).send({
-      message: "Internal Server Error",
-      error: error.message,
-    });
-  }
-};
+const getSyllabusByCourseIdNormal = catchAsyncError(async (req, res, next) => {
+  const syllabus = await SyllabusModle.find({ course_id: req.params.id });
+})
 
 //Get Syllabus with topics by Course ID - /api/v1/paid/syllabus/course/:id ____ Paid Producted
 const getPaidSyllabusByCourseId = catchAsyncError(async (req, res, next) => {

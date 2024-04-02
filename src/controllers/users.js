@@ -44,8 +44,8 @@ const signup = async (req, res) => {
 
 const verify = async (req, res) => {
   // signup verify conformation
-  const { token } = req.query;
   try {
+    const { token } = req.query;
     // Find user in the database using the token
     const user = await UserModel.findOne({ verificationToken: token });
 

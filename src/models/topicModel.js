@@ -19,11 +19,6 @@ const topicSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    topic_video_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "videos",
-        required: true,
-    },
     public_id: {
         type: String,
         require: true

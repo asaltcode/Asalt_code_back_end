@@ -50,18 +50,6 @@ export const upload = (resourceType) => {
 }
 
   
-  const uploadImage = (req, res) => {
-    imageUpload(req, res, async (err) => {
-      if (err) {
-        console.error(err);
-        res.status(500).send('An error occurred');
-      } else {
-        const image = await ImageModel.create({filename: req?.file?.originalname, image_src: req?.file?.path, public_id: req.file.filename})
-        res.status(200).send({url: req?.file?.path, id: image._id, public_id: req.file.filename });        
-      }
-    });
-  };
-  
 export default {videoUpload}
 
 

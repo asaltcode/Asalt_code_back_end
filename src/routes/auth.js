@@ -4,6 +4,7 @@ import  Authenticate from "../middleware/authenticate.js";
 const routers = express.Router()
 
 routers.post("/signup", authcontroller.register)
+routers.post("/signup/verify", authcontroller.verify)
 routers.post("/login", authcontroller.signIn)
 routers.get("/logout", authcontroller.logout)
 routers.post("/password/forgot", authcontroller.forgotPassword)

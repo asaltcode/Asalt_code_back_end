@@ -1,5 +1,5 @@
 //Send JWT Tokens
-const sendToken = async (user, stausCode, res) =>{
+const sendToken = async (user, stausCode, res, message = undefined) =>{
     //Creating JWT Token
     const token = await user.getJwtToken()
     //Seting cookies
@@ -14,7 +14,8 @@ const sendToken = async (user, stausCode, res) =>{
     .send({
         success: true,
         token,
-        user
+        user,
+        message
     })
 }
 

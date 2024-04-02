@@ -1,11 +1,13 @@
 import express from 'express'
-import Auth from '../helper/auth.js'
 import topicController from '../controllers/topic.js'
 import Authenticate from '../middleware/authenticate.js'
+import timeout from 'connect-timeout'
+import { upload } from '../controllers/uploadCloud.js'
 const routers = express.Router()
 const admin = "admin"
 
-routers.post('/admin/topic/new', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), topicController.addTopic)
+
+routers.post('/admin/topic/new', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), timeout('10m'), upload("video").single("topic_video"), topicController.addTopic)
 routers.get('/admin/topic/syllabus/:id', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), topicController.get_topic_by_syllabus_id)
 
 routers.put('/edit-topic/:id', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), topicController.editTopic)

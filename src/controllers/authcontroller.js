@@ -1,29 +1,58 @@
 import {catchAsyncError} from '../middleware/catchAsyncError.js'
 import UserModel from '../models/userModel.js';
-import Auth from '../helper/auth.js';
 import ErrorHandler from '../utils/errorHandler.js';
 import sendToken from '../utils/JWT.js';
 import sendEmail from '../utils/email.js';
 import crypto from "crypto"
 //User Register function
-let generateVerificationToken = () => crypto.randomBytes(20).toString("hex"); //Generate a verifiction token
 
 const register = catchAsyncError(async (req, res, next) => {      //user Signup
-    // const findUser = await UserModel.findOne({ email: req.body.email });
-    // if(findUser){
-    //     return next(new ErrorHandler("Email already exists", 400))
-    // }
+    const token = crypto.randomBytes(25).toString("hex")     //Generet Hash and set ot verify Token
+    const verifiToken = crypto.createHash("sha256").update(token).digest("hex")
+    req.body.verificationToken = verifiToken   //Set verify token expire time
+    req.body.verificationTokenExpire = Date.now() + (2 * 60 * 60 * 1000); // Add 2 hours
 
-    const {name, email, password} = req.body
-    //   req.body.verificationToken = generateVerificationToken();//set verification token 
-    //   signupVerification.signupVerify(name, email, req.body.verificationToken)//Verification mail send
-     const user =  await UserModel.create({name, email, password})
-    //  const token = await user.getJwtToken()
-     sendToken(user, 200, res) 
-   
+    const {name, email, password, verificationToken, verificationTokenExpire} = req.body
+
+    const verifiUrl = `${req.get('origin')}/verify?token=${token}`;
+    const message = `Hello ${name},\n
+    Thank you for signing up with <b>Asalt code!</b> To complete the registration process, please verify your email address by clicking the link below:\n
+    ${verifiUrl}\n\n
+    If you didn't sign up for Asalt Code, please ignore this email.\n
+    The link expires in 2 hours.\n
+    Best Regards\n
+    Asalt Code Private Limited Team`
+
+
+
+    await sendEmail({email, subject: "Verify Your Account - Asalt Code", message})
+
+     const user =  await UserModel.create({name, email, password, verificationToken, verificationTokenExpire})
+     res.status(201).send({
+        message: true,
+        message: "Veriy Your Email",
+        user
+     })   
+})
+
+const verify = catchAsyncError(async (req, res, next) =>{
+    const { token } = req.query;
+    // Find user in the database using the token
+    const verificationToken = crypto.createHash("sha256").update(token).digest('hex')
+    const user = await UserModel.findOne({ verificationToken, verificationTokenExpire: { $gt: Date.now()} });
+    if(!user || user.verified){
+        return next(new ErrorHandler("Verify token is invalid or expired", 400))
+    }
+
+    user.verified = true;
+    user.verificationToken = undefined; // Clear the verification token
+    user.verificationTokenExpire = undefined;
+    await user.save();
+    await sendToken(user, 201, res, "Email Verified Successfully")
 })
 
 const signIn = catchAsyncError(async (req, res, next) => { //user Login
+    
     const { email, password } = req.body;
     if(!email || !password){
         return next(new ErrorHandler("Please enter email & password", 400))
@@ -31,6 +60,25 @@ const signIn = catchAsyncError(async (req, res, next) => { //user Login
 
     //finding the user database
     const user = await UserModel.findOne({ email}).select("+password");
+    if(user && !user.verified){
+        const {email} = user
+        const token = crypto.randomBytes(25).toString("hex")     //Generet Hash and set ot verify Token
+        const verifiToken = crypto.createHash("sha256").update(token).digest("hex")
+        const verifiUrl = `${req.get('origin')}/verify?token=${token}`;
+        const message = `Hello ${user.name},\n
+        Thank you for signing up with <b>Asalt code!</b> To complete the registration process, please verify your email address by clicking the link below:\n
+        ${verifiUrl}\n\n
+        If you didn't sign up for Asalt Code, please ignore this email.\n
+        The link expires in 2 hours.\n
+        Best Regards\n
+        Asalt Code Private Limited Team`
+        
+        user.verificationToken = verifiToken   //Set verify token expire time
+        user.verificationTokenExpire = Date.now() + (2 * 60 * 60 * 1000); // Add 2 hours
+        await user.save()
+        await sendEmail({email, subject: "Verify Your Account - Asalt Code", message})
+        return next(new ErrorHandler("Please verify your email", 400))
+    }
     if(!user){
         return next(new ErrorHandler("Invalid email or password", 401))
     }
@@ -113,4 +161,4 @@ const resetPassword = catchAsyncError(async (req, res, next) =>{
     sendToken(user, 201, res)
 })
 
-export default {register, signIn, logout, forgotPassword, resetPassword}
+export default {register, verify, signIn, logout, forgotPassword, resetPassword}
