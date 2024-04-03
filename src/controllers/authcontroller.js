@@ -93,7 +93,7 @@ const signIn = catchAsyncError(async (req, res, next) => { //user Login
 
 const logout = catchAsyncError(async (req, res, next) => {
     let cookieOptions = {
-        expires: new Date(Date.now()),
+        expires: new Date(0),
         httpOnly: true
     };
 
@@ -101,13 +101,14 @@ const logout = catchAsyncError(async (req, res, next) => {
         cookieOptions.secure = true;
     }
 
-    res.cookie("token", null, cookieOptions)
+    res.clearCookie("token", cookieOptions)
         .status(200)
         .send({
             success: true,
             message: "Logged out"
         });
 });
+
 
 // const logout = catchAsyncError(async (req, res, next) =>{
 //     res.cookie("token", null, {
