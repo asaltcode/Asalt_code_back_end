@@ -95,7 +95,8 @@ const logout = catchAsyncError(async (req, res, next) => {
     res.clearCookie("token", {
         expires: new Date(0),
         httpOnly: true,
-        secure: true
+        secure: true,
+        'Cache-Control': 'no-store'
     }).status(200).send({
         success: true,
         message: "Logged out"

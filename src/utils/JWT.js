@@ -7,6 +7,7 @@ const sendToken = async (user, stausCode, res, message = undefined) =>{
         expires: new Date(Date.now() + process.env.COOKIE_EXPIRY_TIME * 24 * 60 * 60 * 1000),
         secure: true,
         httpOnly: true,
+        'Cache-Control': 'no-store'
     }
 
     res.status(stausCode)
