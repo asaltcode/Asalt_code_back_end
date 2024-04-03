@@ -91,17 +91,35 @@ const signIn = catchAsyncError(async (req, res, next) => { //user Login
     
 })
 
-const logout = catchAsyncError(async (req, res, next) =>{
-    res.cookie("token", null, {
+const logout = catchAsyncError(async (req, res, next) => {
+    let cookieOptions = {
         expires: new Date(Date.now()),
-        httpOnly: true,
-        secure: true
-    }).status(200).send({
-        success: true,
-        message: "Loggedout"
-    })
+        httpOnly: true
+    };
+
+    if (req.headers['x-forwarded-proto'] === 'https') {
+        cookieOptions.secure = true;
+    }
+
+    res.cookie("token", null, cookieOptions)
+        .status(200)
+        .send({
+            success: true,
+            message: "Logged out"
+        });
+});
+
+// const logout = catchAsyncError(async (req, res, next) =>{
+//     res.cookie("token", null, {
+//         expires: new Date(Date.now()),
+//         httpOnly: true,
+//         secure: true
+//     }).status(200).send({
+//         success: true,
+//         message: "Loggedout"
+//     })
     
-})
+// })
 
 const forgotPassword = catchAsyncError(async (req, res, next) =>{
     const user = await UserModel.findOne({email: req.body.email})

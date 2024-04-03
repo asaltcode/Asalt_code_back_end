@@ -53,7 +53,7 @@ routers.post('/admin-product',Auth.authorization,Auth.adminProduct)
 
 // Admin DashBard Routes
 
-routers.post("/profile/update", Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin, "user"), timeout('15m'), upload("image").single("avatar"), UserController.profileUpdate)
+routers.post("/profile/update", Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin, "user"), timeout('25m'), upload("image").single("avatar"), UserController.profileUpdate)
 
 routers.get('/user', Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin, "user"), UserController.getUser)
 routers.get('/admin/users',Authenticate.isAuthenticatedUser, Authenticate.authorizeRole(admin), UserController.getAllUser)
