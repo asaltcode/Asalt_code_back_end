@@ -92,22 +92,16 @@ const signIn = catchAsyncError(async (req, res, next) => { //user Login
 })
 
 const logout = catchAsyncError(async (req, res, next) => {
-    let cookieOptions = {
+    res.clearCookie("token", {
         expires: new Date(0),
-        httpOnly: true
-    };
-
-    if (req.headers['x-forwarded-proto'] === 'https') {
-        cookieOptions.secure = true;
-    }
-
-    res.clearCookie("token", cookieOptions)
-        .status(200)
-        .send({
-            success: true,
-            message: "Logged out"
-        });
+        httpOnly: true,
+        secure: true
+    }).status(200).send({
+        success: true,
+        message: "Logged out"
+    });
 });
+
 
 
 // const logout = catchAsyncError(async (req, res, next) =>{
